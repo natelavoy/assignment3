@@ -1,0 +1,835 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Assignment 3 Monte-Carlo and Finite Difference Method Modelling</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-03-17"><meta name="DC.source" content="assignment3.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Assignment 3 Monte-Carlo and Finite Difference Method Modelling</h1><!--introduction--><p>Nathan Lavoy 100995612</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Part One - Uniform Electric Field on Bottleneck</a></li><li><a href="#2">Part 2 - Distributed Electric Field in Bottle Neck</a></li><li><a href="#3">Part 3 - MC and FD Combination</a></li></ul></div><h2 id="1">Part One - Uniform Electric Field on Bottleneck</h2><p>Part one extends assignment one to add an acceleration due to a uniform electric field applied across the simulation.</p><pre class="codeinput"><span class="comment">% Simulation parameters</span>
+m0 = 9.10938356e-31;    <span class="comment">% Rest mass of electron(kg)</span>
+q0 = 1.60217653e-19;    <span class="comment">% electron charge</span>
+m = 0.26*m0;            <span class="comment">% Effective mass of elctrons</span>
+T = 300;                <span class="comment">% Temperature(K)</span>
+k = 1.38064852e-23;     <span class="comment">% Boltzmann constant</span>
+tmn = 0.2e-12;          <span class="comment">% Mean time between collisions</span>
+vth = sqrt(2*k*T/m);    <span class="comment">% Thermal Velocity in a 2D space</span>
+lambda = vth*tmn;       <span class="comment">% Mean free path</span>
+w = 200e-9;             <span class="comment">% Simulation width</span>
+h = 100e-9;             <span class="comment">% Simulation height</span>
+partNum = 500;         <span class="comment">% Number of particles in simulation</span>
+plotNum = 10;           <span class="comment">% Number of particles shown in plot</span>
+dt = h/vth/100;         <span class="comment">% Time step</span>
+iter = 500 ;            <span class="comment">% Number of iterations</span>
+Vappx = 0.1;            <span class="comment">% Applied Voltage X</span>
+Vappy = 0;            <span class="comment">% Applied Voltage y</span>
+eConc = 10e15;
+
+<span class="comment">% Simulation state [width, height, xv, yv]</span>
+state = zeros(partNum, 4);
+traj = zeros(iter,plotNum*2);
+temp = zeros(iter,1);
+
+<span class="comment">% Random Maxwell-Boltzmann distribution</span>
+MB_pdf = makedist(<span class="string">'Normal'</span>,<span class="string">'mu'</span>, 0, <span class="string">'sigma'</span>, sqrt(k*T/m));
+pScat = 1 - exp(-dt/tmn);
+totalCol = 0;    <span class="comment">% Total number of collisions</span>
+
+<span class="comment">% Initialize the elements</span>
+<span class="keyword">for</span> i=1:partNum
+    angle = 2*pi*rand;  <span class="comment">% random generated angle</span>
+    state(i,:) = [w*rand h*rand random(MB_pdf) random(MB_pdf)];
+<span class="keyword">end</span>
+
+<span class="comment">% Electric Field X</span>
+Ex = Vappx/w;
+Fx = Ex*q0;
+ax = Fx/m0;
+
+<span class="comment">% Electric Field Y</span>
+Ey = Vappy/w;
+Fy = Ey*q0;
+ay = Fy/m0;
+
+Etot = sqrt(Ex^2 + Ey^2);
+
+fprintf(<span class="string">'\nThe electric field is %d V/m.'</span>,Etot);
+fprintf(<span class="string">'\nThe electric force is %d N.\n'</span>,Fx);
+fprintf(<span class="string">'\nThe acceleration is %d m/s^2.\n'</span>,ax);
+fprintf(<span class="string">'Current Density = q0*electron conc*mu*Etot/(h*w)'</span>);
+Vapp = 1.5;
+<span class="comment">% Electric Field X</span>
+Ex = Vappx/w;
+Fx = Ex*q0;
+ax = Fx/m0;
+
+<span class="comment">% Electric Field Y</span>
+Ey = Vappy/w;
+Fy = Ey*q0;
+ay = Fy/m0;
+
+Etot = sqrt(Ex^2 + Ey^2);
+<span class="comment">% Main loop</span>
+<span class="keyword">for</span> i = 1:iter
+    <span class="comment">%Calculate new displacement</span>
+    state(:,3) = state(:,3) + ax*dt;
+    state(:,4) = state(:,4) + ay*dt;
+    dx = dt*state(:,3);
+    dy = dt*state(:,4);
+    state(:,1) = state(:,1) + dx;
+    state(:,2) = state(:,2) + dy;
+
+
+    <span class="comment">% Width check - should enter the other side with no loss</span>
+    <span class="comment">% Leaving right</span>
+    check = state(:,1) &gt; w;
+    state(check,1) = 0;
+    <span class="comment">% Leaving left</span>
+    check = state(:,1) &lt; 0;
+    state(check,1) = w;
+    <span class="comment">% Height check - spectral reflection</span>
+    <span class="comment">% Top</span>
+    check = state(:,2) &gt; h;
+    state(check,2) = h;
+    state(check,4) = -state(check,4);
+    <span class="comment">% Bottom</span>
+    check = state(:,2) &lt; 0;
+    state(check,2) = 0;
+    state(check,4) = -state(check,4);
+
+    <span class="comment">% Scatter particles using exponential scattering probability</span>
+    p = rand(partNum, 1) &lt; pScat;
+    state(p,3:4) = random(MB_pdf, [sum(p),2]);
+    totalCol = totalCol + sum(p(:)==1);
+
+    <span class="comment">% Record the temperature</span>
+    temp(i) = (sum(state(:,3).^2) + sum(state(:,4).^2))*m/k/2/partNum;
+
+    <span class="comment">% Record the trajectories</span>
+    <span class="keyword">for</span> j=1:plotNum
+        traj(i, (2*j):(2*j+1)) = state(j, 1:2);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Simulation two plot</span>
+    figure(1);
+    subplot(2,1,1);
+    hold <span class="string">off</span>;
+    <span class="comment">% Plot current particle positions</span>
+    plot(state(1:plotNum,1)./1e-9, state(1:plotNum,2)./1e-9, <span class="string">'o'</span>);
+    axis([0 w/1e-9 0 h/1e-9]);
+    title(sprintf(<span class="string">'Part Two: %d of %d Electrons'</span>, plotNum, partNum));
+    xlabel(<span class="string">'x (nm)'</span>);
+    ylabel(<span class="string">'y (nm)'</span>);
+    subplot(2,1,2);
+    hold <span class="string">off</span>;
+    <span class="comment">% Plot system temperature</span>
+    plot(dt*(0:i-1), temp(1:i));
+    axis([0 dt*iter min(temp)*0.98 max(temp)*1.02]);
+    title(<span class="string">'System Temperature'</span>);
+    xlabel(<span class="string">'Time (s)'</span>);
+    ylabel(<span class="string">'Temperature (K)'</span>);
+    <span class="comment">% System Drift Current</span>
+    v = sqrt(state(:,3).^2 + state(:,4).^2);
+    mu = sum(v)/partNum/Etot;
+    DriftCur(i) = q0*eConc*mu*Etot/(h*w);
+<span class="keyword">end</span>
+<span class="comment">% Plot trajectories</span>
+figure(1);
+title(sprintf(<span class="string">'%d of %d Electrons Trajectories'</span>, plotNum, partNum));
+xlabel(<span class="string">'x (nm)'</span>);
+ylabel(<span class="string">'y (nm)'</span>);
+axis([0 w/1e-9 0 h/1e-9]);
+hold <span class="string">on</span>;
+<span class="keyword">for</span> i=1:plotNum
+    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, <span class="string">'.'</span>);
+<span class="keyword">end</span>
+hold <span class="string">off</span>;
+<span class="comment">% Plot temperature</span>
+figure(2);
+plot(dt*(0:iter-1), temp);
+axis([0 dt*iter min(temp)*0.98 max(temp)*1.02]);
+title(<span class="string">'Semiconductor Temperature'</span>);
+xlabel(<span class="string">'Time (s)'</span>);
+ylabel(<span class="string">'Temperature (K)'</span>);
+<span class="comment">% Plot Current</span>
+figure(4);
+plot(dt*(0:iter-1), DriftCur);
+axis([0 dt*iter min(DriftCur)*0.98 max(DriftCur)*1.02]);
+title(<span class="string">'Drift Current'</span>);
+xlabel(<span class="string">'Time (s)'</span>);
+ylabel(<span class="string">'Current (A)'</span>);
+
+<span class="comment">% Electron Density</span>
+density = hist3(state(:,1:2),[30 30])';
+figure(5);
+imagesc(density);
+title(<span class="string">'Electron Density'</span>);
+axis <span class="string">off</span>;
+xlabel(<span class="string">'x (nm)'</span>);
+ylabel(<span class="string">'y (nm)'</span>);
+colorbar;
+
+<span class="comment">% Temperature calculation</span>
+tempDen = zeros(30,30);
+partDen = zeros(30,30);
+binX = 0:w/30:w;
+binY = 0:h/30:h;
+<span class="comment">%Breakup space into grids and add a particles temp the grid it appears in</span>
+<span class="keyword">for</span> i = 1:partNum
+    <span class="keyword">for</span> n = 1:30
+        <span class="keyword">for</span> p = 1:30
+            <span class="keyword">if</span> (state(i,1) &gt; binX(n) &amp;&amp; state(i,1) &lt;= binX(n+1) &amp;&amp; state(i,2) &gt; binY(p) &amp;&amp; state(i,2) &lt;= binY(p+1))
+                tempDen(n,p) = tempDen(n,p) + (state(i,3)^2 + state(i,4)^2)*m/k/2;
+                partDen(n,p) = partDen(n,p) + 1;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="comment">% Electron Density</span>
+figure(6);
+imagesc((tempDen./partDen)');
+title(<span class="string">'Temperature Map'</span>);
+axis <span class="string">off</span>;
+xlabel(<span class="string">'x (nm)'</span>);
+ylabel(<span class="string">'y (nm)'</span>);
+colorbar;
+</pre><pre class="codeoutput">
+The electric field is 5.000000e+05 V/m.
+The electric force is 8.010883e-14 N.
+
+The acceleration is 87940996196234400 m/s^2.
+Current Density = q0*electron conc*mu*Etot/(h*w)</pre><img vspace="5" hspace="5" src="assignment3_01.png" alt=""> <img vspace="5" hspace="5" src="assignment3_02.png" alt=""> <img vspace="5" hspace="5" src="assignment3_03.png" alt=""> <img vspace="5" hspace="5" src="assignment3_04.png" alt=""> <img vspace="5" hspace="5" src="assignment3_05.png" alt=""> <h2 id="2">Part 2 - Distributed Electric Field in Bottle Neck</h2><p>Part 2 sets up the distributed electric field using FD method.</p><pre class="codeinput">xlimleft = 0.8e-7;
+xlimright = 1.2e-7;
+ylimtop = 0.6e-7;
+ylimbot = 0.4e-7;
+
+xlim = 200e-9;
+ylim = 100e-9;
+nx = 200;
+ny = 100;
+Vapp = 1.5;
+sigma1 = 1;
+sigma2 = 0.0001;
+
+[Vmap,Ex,Ey] = SolveBottleNeck(xlim,ylim,nx,ny,sigma1,sigma2,Vapp,xlimleft, xlimright, ylimtop, ylimbot);
+
+figure(7)
+subplot(2,1,1),H = surface(Vmap');
+title(<span class="string">'Voltage Map with Bottleneck'</span>)
+set(H, <span class="string">'linestyle'</span>, <span class="string">'none'</span>);
+view(45,45)
+voltages=colorbar;
+title(voltages,<span class="string">'Volts'</span>)
+
+subplot(2,1,2)
+quiver(Ex',Ey');
+title(<span class="string">'Electric Field from Potential - Vector Plot'</span>)
+axis([0 nx 0 ny]);
+</pre><img vspace="5" hspace="5" src="assignment3_06.png" alt=""> <h2 id="3">Part 3 - MC and FD Combination</h2><p>Part 3 implements the distributed electric field in the Monte Carlo simulation. The position of the electrons are used to determine the acceleration they are influenced by. Simulation parameters</p><pre class="codeinput">m0 = 9.10938356e-31;    <span class="comment">% Rest mass of electron(kg).</span>
+q0 = 1.60217653e-19;    <span class="comment">% electron charge</span>
+m = 0.26*m0;            <span class="comment">% Effective mass of elctrons</span>
+T = 300;                <span class="comment">% Temperature(K)</span>
+k = 1.38064852e-23;     <span class="comment">% Boltzmann constant</span>
+tmn = 0.2e-12;          <span class="comment">% Mean time between collisions</span>
+vth = sqrt(2*k*T/m);    <span class="comment">% Thermal Velocity in a 2D space</span>
+lambda = vth*tmn;       <span class="comment">% Mean free path</span>
+w = 200e-9;             <span class="comment">% Simulation width</span>
+h = 100e-9;             <span class="comment">% Simulation height</span>
+partNum = 1000;         <span class="comment">% Number of particles in simulation</span>
+plotNum = 10;           <span class="comment">% Number of particles shown in plot</span>
+dt = h/vth/100;         <span class="comment">% Time step</span>
+iter = 1000;             <span class="comment">% Number of iterations</span>
+
+<span class="comment">% Simulation state [width, height, xv, yv]</span>
+state = zeros(partNum, 4);
+traj = zeros(iter,plotNum*2);
+temp = zeros(iter,1);
+
+<span class="comment">% Random Maxwell-Boltzmann distribution</span>
+MB_pdf = makedist(<span class="string">'Normal'</span>,<span class="string">'mu'</span>, 0, <span class="string">'sigma'</span>, sqrt(k*T/m));
+pScat = 1 - exp(-dt/tmn);
+totalCol = 0;    <span class="comment">% Total number of collisions</span>
+
+<span class="comment">% Defines walls</span>
+boxes = 1e-9.*[80 120 0 40; 80 120 60 100];
+<span class="comment">% Fill simulation</span>
+<span class="keyword">for</span> i = 1:partNum
+    angle = rand*2*pi;
+    state(i,:) = [w*rand h*rand random(MB_pdf) random(MB_pdf)];
+
+    <span class="comment">% remap illegal particle locations</span>
+    <span class="keyword">while</span>(invalidPos(state(i,1), state(i,2), boxes))
+        state(i,1:2) = [w*rand h*rand];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Electric Field X</span>
+Fx = Ex*q0;
+ax = Fx/m0;
+
+<span class="comment">% Electric Field Y</span>
+Fy = Ey*q0;
+ay = Fy/m0;
+<span class="comment">% Main loop</span>
+<span class="keyword">for</span> i = 1:iter
+    <span class="comment">%Calculate new displacement</span>
+    dx = dt*state(:,3);
+    dy = dt*state(:,4);
+    state(:,1) = state(:,1) + dx;
+    state(:,2) = state(:,2) + dy;
+    <span class="comment">% Top</span>
+    check = state(:,2) &gt; h;
+    state(check,2) = h;
+    state(check,4) = -state(check,4);
+    <span class="comment">% Bottom</span>
+    check = state(:,2) &lt; 0;
+    state(check,2) = 0;
+    state(check,4) = -state(check,4);
+    <span class="comment">% Left</span>
+    check = state(:,1) &lt; 0;
+    state(check,1) = 0;
+    state(check,3) = -state(check,3);
+    <span class="comment">% Right</span>
+    check = state(:,1) &gt; w;
+    state(check,1) = w;
+    state(check,3) = -state(check,3);
+    <span class="comment">% Walls</span>
+    <span class="keyword">for</span> j = 1:partNum
+        <span class="comment">% if in box, determine which wall and reset particle</span>
+        <span class="keyword">if</span> (invalidPos(state(j,1), state(j,2), boxes))
+            xDist1 = abs(boxes(1,1)-state(j,1));    <span class="comment">% Left wall</span>
+            xDist2 = abs(boxes(1,2)-state(j,1));    <span class="comment">% Right wall</span>
+            yDist1 = abs(boxes(1,4)-state(j,2));    <span class="comment">% Lower wall</span>
+            yDist2 = abs(boxes(2,3)-state(j,2));    <span class="comment">% Upper wall</span>
+            wall = min([xDist1 xDist2 yDist1 yDist2]);
+            <span class="keyword">if</span> (xDist1 == wall)
+                state(j,1) = boxes(1,1);
+                state(j,3) = -state(j,3);
+            <span class="keyword">elseif</span> (xDist2 == wall)
+                state(j,1) = boxes(1,2);
+                state(j,3) = -state(j,3);
+            <span class="keyword">elseif</span> (yDist1 == wall)
+                state(j,2) = boxes(1,4);
+                state(j,4) = -state(j,4);
+            <span class="keyword">elseif</span> (yDist2 == wall)
+                state(j,2) = boxes(2,3);
+                state(j,4) = -state(j,4);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        xpos = round(round(max(state(j,1)),9)*1e9);
+        <span class="keyword">if</span> (xpos == 0) xpos = xpos+1; <span class="keyword">end</span>
+        <span class="keyword">if</span> (xpos &gt; 200) xpos = xpos -1; <span class="keyword">end</span>
+        ypos = round(round(max(state(j,2)),9)*1e9);
+        <span class="keyword">if</span> (ypos == 0) ypos = ypos+1; <span class="keyword">end</span>
+        <span class="keyword">if</span> (ypos &gt; 100) ypos = ypos -1; <span class="keyword">end</span>
+        state(j,3) = state(j,3) + ax(xpos,ypos)*dt;
+        state(j,4) = state(j,4) + ay(xpos,ypos)*dt;
+    <span class="keyword">end</span>
+    <span class="comment">% Scatter particles</span>
+    j = rand(partNum, 1) &lt; pScat;
+    state(j,3:4) = random(MB_pdf, [sum(j),2]);
+
+    <span class="comment">% Record temperatures</span>
+    temp(i) = (sum(state(:,3).^2) + sum(state(:,4).^2))*m/k/2/partNum;
+    <span class="comment">% Record positions for subset of particles that will be graphed</span>
+    <span class="keyword">for</span> j=1:plotNum
+        traj(i, (2*j):(2*j+1)) = state(j, 1:2);
+    <span class="keyword">end</span>
+    <span class="comment">% Simulation 3</span>
+    figure(8);
+    hold <span class="string">off</span>;
+    plot(state(1:plotNum,1)./1e-9, state(1:plotNum,2)./1e-9, <span class="string">'o'</span>);
+    hold <span class="string">on</span>;
+    <span class="comment">% Plot the boxes</span>
+    <span class="keyword">for</span> j=1:size(boxes,1)
+       plot([boxes(j, 1) boxes(j, 1) boxes(j, 2) boxes(j, 2) boxes(j, 1)]./1e-9,<span class="keyword">...</span>
+           [boxes(j, 3) boxes(j, 4) boxes(j, 4) boxes(j, 3) boxes(j, 3)]./1e-9, <span class="string">'k-'</span>);
+    <span class="keyword">end</span>
+    axis([0 w/1e-9 0 h/1e-9]);
+    title(sprintf(<span class="string">'Part Three: %d of %d Electrons'</span>, plotNum, partNum));
+    xlabel(<span class="string">'x (nm)'</span>);
+    ylabel(<span class="string">'y (nm)'</span>);
+<span class="keyword">end</span>
+<span class="comment">% Show trajectories</span>
+figure(8);
+title(sprintf(<span class="string">'Part Three: %d of %d Electrons Trajectories'</span>, plotNum, partNum));
+xlabel(<span class="string">'X (nm)'</span>);
+ylabel(<span class="string">'Y (nm)'</span>);
+axis([0 w/1e-9 0 h/1e-9]);
+hold <span class="string">on</span>;
+<span class="keyword">for</span> i=1:plotNum
+    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, <span class="string">'.'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Electron Density</span>
+density = hist3(state(:,1:2),[30 30])';
+figure(9);
+imagesc(density);
+title(<span class="string">'Electron Density'</span>);
+axis <span class="string">off</span>;
+xlabel(<span class="string">'x (nm)'</span>);
+ylabel(<span class="string">'y (nm)'</span>);
+colorbar;
+
+<span class="comment">% Used to determine if particle is in the boxes</span>
+<span class="keyword">function</span> val = invalidPos(x, y, boxes)
+    val = false;
+    <span class="keyword">if</span> (x &gt; boxes(1,1) &amp;&amp; x &lt; boxes(1,2) &amp;&amp; y &gt; boxes(1,3) &amp;&amp; y &lt; boxes(1,4))
+        val = true;
+    <span class="keyword">elseif</span> (x &gt; boxes(2,1) &amp;&amp; x &lt; boxes(2,2) &amp;&amp; y &gt; boxes(2,3) &amp;&amp; y &lt; boxes(2,4))
+        val = true;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="assignment3_07.png" alt=""> <img vspace="5" hspace="5" src="assignment3_08.png" alt=""> <p>The results of the simulation appear to support the theory. Electrons are shuffled through the gap and then into the right wall as directed by the electric field. The next step is to implement forces of electrons on each other due to charges rather than just collisions like standard particles.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Assignment 3 Monte-Carlo and Finite Difference Method Modelling
+% Nathan Lavoy
+% 100995612
+
+%% Part One - Uniform Electric Field on Bottleneck
+% Part one extends assignment one to add an acceleration due to a uniform
+% electric field applied across the simulation. 
+
+% Simulation parameters
+m0 = 9.10938356e-31;    % Rest mass of electron(kg)
+q0 = 1.60217653e-19;    % electron charge
+m = 0.26*m0;            % Effective mass of elctrons
+T = 300;                % Temperature(K)
+k = 1.38064852e-23;     % Boltzmann constant
+tmn = 0.2e-12;          % Mean time between collisions
+vth = sqrt(2*k*T/m);    % Thermal Velocity in a 2D space 
+lambda = vth*tmn;       % Mean free path
+w = 200e-9;             % Simulation width
+h = 100e-9;             % Simulation height
+partNum = 500;         % Number of particles in simulation
+plotNum = 10;           % Number of particles shown in plot
+dt = h/vth/100;         % Time step 
+iter = 500 ;            % Number of iterations
+Vappx = 0.1;            % Applied Voltage X
+Vappy = 0;            % Applied Voltage y
+eConc = 10e15;
+
+% Simulation state [width, height, xv, yv]
+state = zeros(partNum, 4);
+traj = zeros(iter,plotNum*2);
+temp = zeros(iter,1);
+
+% Random Maxwell-Boltzmann distribution
+MB_pdf = makedist('Normal','mu', 0, 'sigma', sqrt(k*T/m));
+pScat = 1 - exp(-dt/tmn);
+totalCol = 0;    % Total number of collisions
+
+% Initialize the elements
+for i=1:partNum
+    angle = 2*pi*rand;  % random generated angle
+    state(i,:) = [w*rand h*rand random(MB_pdf) random(MB_pdf)];
+end
+
+% Electric Field X
+Ex = Vappx/w;
+Fx = Ex*q0;
+ax = Fx/m0;
+
+% Electric Field Y
+Ey = Vappy/w;
+Fy = Ey*q0;
+ay = Fy/m0;
+
+Etot = sqrt(Ex^2 + Ey^2);
+
+fprintf('\nThe electric field is %d V/m.',Etot);
+fprintf('\nThe electric force is %d N.\n',Fx);
+fprintf('\nThe acceleration is %d m/s^2.\n',ax);
+fprintf('Current Density = q0*electron conc*mu*Etot/(h*w)');
+Vapp = 1.5;
+% Electric Field X
+Ex = Vappx/w;
+Fx = Ex*q0;
+ax = Fx/m0;
+
+% Electric Field Y
+Ey = Vappy/w;
+Fy = Ey*q0;
+ay = Fy/m0;
+
+Etot = sqrt(Ex^2 + Ey^2);
+% Main loop
+for i = 1:iter
+    %Calculate new displacement
+    state(:,3) = state(:,3) + ax*dt;
+    state(:,4) = state(:,4) + ay*dt;
+    dx = dt*state(:,3);
+    dy = dt*state(:,4);
+    state(:,1) = state(:,1) + dx;
+    state(:,2) = state(:,2) + dy;
+    
+    
+    % Width check - should enter the other side with no loss
+    % Leaving right
+    check = state(:,1) > w;
+    state(check,1) = 0;
+    % Leaving left
+    check = state(:,1) < 0;
+    state(check,1) = w;
+    % Height check - spectral reflection
+    % Top
+    check = state(:,2) > h;
+    state(check,2) = h;
+    state(check,4) = -state(check,4);
+    % Bottom
+    check = state(:,2) < 0;
+    state(check,2) = 0;
+    state(check,4) = -state(check,4);
+    
+    % Scatter particles using exponential scattering probability
+    p = rand(partNum, 1) < pScat;
+    state(p,3:4) = random(MB_pdf, [sum(p),2]);
+    totalCol = totalCol + sum(p(:)==1);
+    
+    % Record the temperature
+    temp(i) = (sum(state(:,3).^2) + sum(state(:,4).^2))*m/k/2/partNum;
+    
+    % Record the trajectories
+    for j=1:plotNum
+        traj(i, (2*j):(2*j+1)) = state(j, 1:2);
+    end 
+    
+    % Simulation two plot
+    figure(1);
+    subplot(2,1,1);
+    hold off;
+    % Plot current particle positions
+    plot(state(1:plotNum,1)./1e-9, state(1:plotNum,2)./1e-9, 'o');
+    axis([0 w/1e-9 0 h/1e-9]);
+    title(sprintf('Part Two: %d of %d Electrons', plotNum, partNum));
+    xlabel('x (nm)');
+    ylabel('y (nm)');
+    subplot(2,1,2);
+    hold off;
+    % Plot system temperature
+    plot(dt*(0:i-1), temp(1:i));
+    axis([0 dt*iter min(temp)*0.98 max(temp)*1.02]);
+    title('System Temperature');
+    xlabel('Time (s)');
+    ylabel('Temperature (K)');
+    % System Drift Current
+    v = sqrt(state(:,3).^2 + state(:,4).^2);
+    mu = sum(v)/partNum/Etot;
+    DriftCur(i) = q0*eConc*mu*Etot/(h*w);
+end
+% Plot trajectories
+figure(1);
+title(sprintf('%d of %d Electrons Trajectories', plotNum, partNum));
+xlabel('x (nm)');
+ylabel('y (nm)');
+axis([0 w/1e-9 0 h/1e-9]);
+hold on;
+for i=1:plotNum
+    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, '.');
+end
+hold off;
+% Plot temperature
+figure(2);
+plot(dt*(0:iter-1), temp);
+axis([0 dt*iter min(temp)*0.98 max(temp)*1.02]);
+title('Semiconductor Temperature');
+xlabel('Time (s)');
+ylabel('Temperature (K)');
+% Plot Current
+figure(4);
+plot(dt*(0:iter-1), DriftCur);
+axis([0 dt*iter min(DriftCur)*0.98 max(DriftCur)*1.02]);
+title('Drift Current');
+xlabel('Time (s)');
+ylabel('Current (A)');
+
+% Electron Density
+density = hist3(state(:,1:2),[30 30])';
+figure(5);
+imagesc(density);
+title('Electron Density');
+axis off;
+xlabel('x (nm)');
+ylabel('y (nm)');
+colorbar;
+
+% Temperature calculation
+tempDen = zeros(30,30);
+partDen = zeros(30,30);
+binX = 0:w/30:w;
+binY = 0:h/30:h;
+%Breakup space into grids and add a particles temp the grid it appears in
+for i = 1:partNum
+    for n = 1:30
+        for p = 1:30
+            if (state(i,1) > binX(n) && state(i,1) <= binX(n+1) && state(i,2) > binY(p) && state(i,2) <= binY(p+1))
+                tempDen(n,p) = tempDen(n,p) + (state(i,3)^2 + state(i,4)^2)*m/k/2;
+                partDen(n,p) = partDen(n,p) + 1;
+            end
+        end
+    end
+end
+% Electron Density
+figure(6);
+imagesc((tempDen./partDen)');
+title('Temperature Map');
+axis off;
+xlabel('x (nm)');
+ylabel('y (nm)');
+colorbar;
+%% Part 2 - Distributed Electric Field in Bottle Neck
+% Part 2 sets up the distributed electric field using FD method.
+xlimleft = 0.8e-7;
+xlimright = 1.2e-7;
+ylimtop = 0.6e-7;
+ylimbot = 0.4e-7;
+
+xlim = 200e-9;
+ylim = 100e-9;
+nx = 200;
+ny = 100;
+Vapp = 1.5;
+sigma1 = 1;
+sigma2 = 0.0001;
+
+[Vmap,Ex,Ey] = SolveBottleNeck(xlim,ylim,nx,ny,sigma1,sigma2,Vapp,xlimleft, xlimright, ylimtop, ylimbot);
+
+figure(7)
+subplot(2,1,1),H = surface(Vmap');
+title('Voltage Map with Bottleneck')
+set(H, 'linestyle', 'none');
+view(45,45)
+voltages=colorbar;
+title(voltages,'Volts')
+
+subplot(2,1,2)
+quiver(Ex',Ey');
+title('Electric Field from Potential - Vector Plot')
+axis([0 nx 0 ny]);
+%% Part 3 - MC and FD Combination
+% Part 3 implements the distributed electric field in the Monte Carlo
+% simulation. The position of the electrons are used to determine the
+% acceleration they are influenced by.
+% Simulation parameters
+m0 = 9.10938356e-31;    % Rest mass of electron(kg).
+q0 = 1.60217653e-19;    % electron charge
+m = 0.26*m0;            % Effective mass of elctrons
+T = 300;                % Temperature(K)
+k = 1.38064852e-23;     % Boltzmann constant
+tmn = 0.2e-12;          % Mean time between collisions
+vth = sqrt(2*k*T/m);    % Thermal Velocity in a 2D space 
+lambda = vth*tmn;       % Mean free path
+w = 200e-9;             % Simulation width
+h = 100e-9;             % Simulation height
+partNum = 1000;         % Number of particles in simulation
+plotNum = 10;           % Number of particles shown in plot
+dt = h/vth/100;         % Time step 
+iter = 1000;             % Number of iterations
+
+% Simulation state [width, height, xv, yv]
+state = zeros(partNum, 4);
+traj = zeros(iter,plotNum*2);
+temp = zeros(iter,1);
+
+% Random Maxwell-Boltzmann distribution
+MB_pdf = makedist('Normal','mu', 0, 'sigma', sqrt(k*T/m));
+pScat = 1 - exp(-dt/tmn);
+totalCol = 0;    % Total number of collisions
+
+% Defines walls
+boxes = 1e-9.*[80 120 0 40; 80 120 60 100];
+% Fill simulation
+for i = 1:partNum
+    angle = rand*2*pi;
+    state(i,:) = [w*rand h*rand random(MB_pdf) random(MB_pdf)];
+    
+    % remap illegal particle locations
+    while(invalidPos(state(i,1), state(i,2), boxes))
+        state(i,1:2) = [w*rand h*rand];
+    end
+end
+
+% Electric Field X
+Fx = Ex*q0;
+ax = Fx/m0;
+
+% Electric Field Y
+Fy = Ey*q0;
+ay = Fy/m0;
+% Main loop
+for i = 1:iter
+    %Calculate new displacement
+    dx = dt*state(:,3);
+    dy = dt*state(:,4);
+    state(:,1) = state(:,1) + dx;
+    state(:,2) = state(:,2) + dy;
+    % Top
+    check = state(:,2) > h;
+    state(check,2) = h;
+    state(check,4) = -state(check,4);
+    % Bottom
+    check = state(:,2) < 0;
+    state(check,2) = 0;
+    state(check,4) = -state(check,4);
+    % Left
+    check = state(:,1) < 0;
+    state(check,1) = 0;
+    state(check,3) = -state(check,3);
+    % Right
+    check = state(:,1) > w;
+    state(check,1) = w;
+    state(check,3) = -state(check,3);
+    % Walls
+    for j = 1:partNum
+        % if in box, determine which wall and reset particle
+        if (invalidPos(state(j,1), state(j,2), boxes))
+            xDist1 = abs(boxes(1,1)-state(j,1));    % Left wall
+            xDist2 = abs(boxes(1,2)-state(j,1));    % Right wall
+            yDist1 = abs(boxes(1,4)-state(j,2));    % Lower wall
+            yDist2 = abs(boxes(2,3)-state(j,2));    % Upper wall
+            wall = min([xDist1 xDist2 yDist1 yDist2]);
+            if (xDist1 == wall)
+                state(j,1) = boxes(1,1);
+                state(j,3) = -state(j,3);
+            elseif (xDist2 == wall)
+                state(j,1) = boxes(1,2);
+                state(j,3) = -state(j,3);
+            elseif (yDist1 == wall)
+                state(j,2) = boxes(1,4);
+                state(j,4) = -state(j,4);
+            elseif (yDist2 == wall)
+                state(j,2) = boxes(2,3);
+                state(j,4) = -state(j,4);   
+            end
+        end
+        xpos = round(round(max(state(j,1)),9)*1e9);
+        if (xpos == 0) xpos = xpos+1; end
+        if (xpos > 200) xpos = xpos -1; end
+        ypos = round(round(max(state(j,2)),9)*1e9);
+        if (ypos == 0) ypos = ypos+1; end
+        if (ypos > 100) ypos = ypos -1; end
+        state(j,3) = state(j,3) + ax(xpos,ypos)*dt;
+        state(j,4) = state(j,4) + ay(xpos,ypos)*dt;
+    end
+    % Scatter particles
+    j = rand(partNum, 1) < pScat;
+    state(j,3:4) = random(MB_pdf, [sum(j),2]);
+    
+    % Record temperatures
+    temp(i) = (sum(state(:,3).^2) + sum(state(:,4).^2))*m/k/2/partNum;
+    % Record positions for subset of particles that will be graphed
+    for j=1:plotNum
+        traj(i, (2*j):(2*j+1)) = state(j, 1:2);
+    end 
+    % Simulation 3
+    figure(8);
+    hold off;
+    plot(state(1:plotNum,1)./1e-9, state(1:plotNum,2)./1e-9, 'o');
+    hold on;
+    % Plot the boxes
+    for j=1:size(boxes,1)
+       plot([boxes(j, 1) boxes(j, 1) boxes(j, 2) boxes(j, 2) boxes(j, 1)]./1e-9,...
+           [boxes(j, 3) boxes(j, 4) boxes(j, 4) boxes(j, 3) boxes(j, 3)]./1e-9, 'k-');
+    end
+    axis([0 w/1e-9 0 h/1e-9]);
+    title(sprintf('Part Three: %d of %d Electrons', plotNum, partNum));
+    xlabel('x (nm)');
+    ylabel('y (nm)');
+end
+% Show trajectories
+figure(8);
+title(sprintf('Part Three: %d of %d Electrons Trajectories', plotNum, partNum));
+xlabel('X (nm)');
+ylabel('Y (nm)');
+axis([0 w/1e-9 0 h/1e-9]);
+hold on;
+for i=1:plotNum
+    plot(traj(:,i*2)./1e-9, traj(:,i*2+1)./1e-9, '.');
+end
+
+% Electron Density
+density = hist3(state(:,1:2),[30 30])';
+figure(9);
+imagesc(density);
+title('Electron Density');
+axis off;
+xlabel('x (nm)');
+ylabel('y (nm)');
+colorbar;
+
+% Used to determine if particle is in the boxes
+function val = invalidPos(x, y, boxes)
+    val = false;
+    if (x > boxes(1,1) && x < boxes(1,2) && y > boxes(1,3) && y < boxes(1,4))
+        val = true;
+    elseif (x > boxes(2,1) && x < boxes(2,2) && y > boxes(2,3) && y < boxes(2,4))
+        val = true;
+    end
+end
+%%
+% The results of the simulation appear to support the theory. Electrons are
+% shuffled through the gap and then into the right wall as directed by the
+% electric field. The next step is to implement forces of electrons on each
+% other due to charges rather than just collisions like standard particles. 
+##### SOURCE END #####
+--></body></html>
